@@ -108,7 +108,7 @@ class ApacheHTTPD(base.HTTPStatsPlugin):
                              key, value)
         
         score_data = self.get_scoreboard(stats)
-        for key, value in score_data.iteritems():
+        for key, value in score_data.items():
             if key in self.KEYS:
                 if self.KEYS[key].get('type') == 'gauge':
                     self.add_gauge_value(self.KEYS[key]['label'],

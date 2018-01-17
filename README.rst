@@ -1,28 +1,13 @@
 NewRelic Plugin Agent
 =====================
 
-An agent that polls supported backend systems and submits the results to the
-NewRelic platform. Currently supported backend systems are:
-
-- Alternative PHP Cache
-- Apache HTTP Server
-- CouchDB
-- Elasticsearch
-- HAProxy
-- Memcached
-- MongoDB
-- Nginx
-- pgBouncer
-- PHP FPM
-- PostgreSQL
-- RabbitMQ
-- Redis
-- Riak
-- uWSGI
+| An agent that polls a number of backend systems and submits the results to the NewRelic platform. The backend systems supported by the original repo can be found `here <https://github.com/MeetMe/newrelic-plugin-agent>`_.
+|
+| This fork was created to initially only allow collection of Apache HTTP server metrics with Python 3.x (not backwards compatible with Python 2.x). As such, other backend system plugins in this fork may not run entirely and this README file simplified until such time those plugins are supported.
 
 Base Requirements
 -----------------
-The agent requires Python 2.6 or 2.7 and ``pip`` for installation. Individual plugin backends may require additional libraries and are detailed below.
+The agent requires ``pip3`` for installation. This fork is tested and known to work on Python 3.5. It won't work on Python 2.x and mileage may vary on other Python 3.x.
 
 Configuration File Note
 -----------------------
@@ -30,13 +15,15 @@ The configuration file uses YAML as its format. Most tickets for non-working ins
 
 Installation Instructions
 -------------------------
-1. Install via ``pip`` *:
+Note: This fork currently only supports installation via the GitHub repo.
+
+1. Install via ``pip3``:
 
 ::
 
-    $ pip install newrelic-plugin-agent
+    $ pip3 install git+git://github.com/SuperGeno/newrelic-plugin-agent.git@{ branch_or_tag_or_commit }
 
-* See ``pip`` installation instructions at http://www.pip-installer.org/en/latest/installing.html
+* See ``pip3`` installation instructions at https://pip.pypa.io/en/latest/installing/
 
 2. Copy the configuration file example from ``/opt/newrelic-plugin-agent/newrelic-plugin-agent.cfg`` to ``/etc/newrelic/newrelic-plugin-agent.cfg`` and edit the configuration in that file.
 
@@ -53,26 +40,6 @@ Installation Instructions
 Where ``-f`` is to run it in the foreground instead of as a daemon.
 
 Sample configuration and init.d scripts are installed to ``/opt/newrelic-plugin-agent`` in addition to a PHP script required for APC monitoring.
-
-Installing Additional Requirements
-----------------------------------
-
-To use the MongoDB the ``mongodb`` library is required. For the pgBouncer or PostgreSQL plugin you must install the ``psycopg2`` library. To easily do
-this, make sure you have the latest version of ``pip`` installed (http://www.pip-installer.org/). This should be done after installing the agent itself:
-
-::
-
-    $ pip install newrelic-plugin-agent[mongodb]
-
-or::
-
-    $ pip install newrelic-plugin-agent[pgbouncer]
-
-or::
-
-    $ pip install newrelic-plugin-agent[postgresql]
-
-If this does not work for you, make sure you are running a recent copy of ``pip`` (>= 1.3).
 
 Plugin Configuration Stanzas
 ----------------------------
@@ -108,10 +75,6 @@ You can also use a single mapping like follows:
 
 The fields for plugin configurations can vary due to a plugin's configuration requirements. The name value in each stanza is only required when using multiple targets in a plugin. If it is only a single target, the name will be taken from the server's hostname.
 
-APC Installation Notes
-----------------------
-Copy the ``apc-nrp.php`` script to a directory that can be served by your web server or ``php-fpm`` application. Edit the ``newrelic-plugin-agent`` configuration to point to the appropriate URL.
-
 Apache HTTPd Installation Notes
 -------------------------------
 Enable the HTTPd server status page in the default virtual host. The following example configuration snippet for Apache HTTPd 2.2 demonstrates how to do this:
@@ -141,121 +104,6 @@ The agent requires the extended information to parse metrics. If you are not see
     ExtendedStatus On
 
 If you are monitoring Apache HTTPd via a HTTPS connection you can use the ``verify_ssl_cert`` configuration value in the httpd configuration section to disable SSL certificate verification.
-
-Memcached Installation Notes
-----------------------------
-The memcached plugin can communicate either over UNIX domain sockets using the path configuration variable or TCP/IP using the host and port variables. Do not include both.
-
-MongoDB Installation Notes
---------------------------
-You need to install the pymongo driver, either by running ``pip install pymongo`` or by following the "`Installing Additional Requirements`_" above. Each database you wish to collect metrics for must be enumerated in the configuration.
-
-There are two configuration stanza formats for MongoDB. You must use one or the other, they can not be mixed. For non-authenticated polling, you can simply enumate the databases you would like stats from as a list:
-
-::
-
-      mongodb:
-        name: hostname
-        host: localhost
-        port: 27017
-        #admin_username: foo
-        #admin_password: bar
-        #ssl: False
-        #ssl_keyfile: /path/to/keyfile
-        #ssl_certfile: /path/to/certfile
-        #ssl_cert_reqs: 0  # Should be 0 for ssl.CERT_NONE, 1 for ssl.CERT_OPTIONAL, 2 for ssl.CERT_REQUIRED
-        #ssl_ca_certs: /path/to/cacerts file
-        databases:
-          - database_name_1
-          - database_name_2
-
-If your MongoDB server requires authentication, you must provide both admin credentials and database level credentials and the stanza is formatted as a nested array:
-
-::
-
-      mongodb:
-        name: hostname
-        host: localhost
-        port: 27017
-        #admin_username: foo
-        #admin_password: bar
-        #ssl: False
-        #ssl_keyfile: /path/to/keyfile
-        #ssl_certfile: /path/to/certfile
-        #ssl_cert_reqs: 0  # Should be 0 for ssl.CERT_NONE, 1 for ssl.CERT_OPTIONAL, 2 for ssl.CERT_REQUIRED
-        #ssl_ca_certs: /path/to/cacerts file
-        databases:
-          database_name_1:
-            username: foo
-            password: bar
-          database_name_2:
-            username: foo
-            password: bar
-
-Nginx Installation Notes
-------------------------
-Enable the Nginx ``stub_status`` setting on the default site in your configuration. The following example configuration snippet for Nginx demonstates how to do this:
-
-::
-
-      location /nginx_stub_status {
-        stub_status on;
-        allow 127.0.0.1;
-        deny all;
-      }
-
-If you are monitoring Nginx via a HTTPS connection you can use the ``verify_ssl_cert`` configuration value in the httpd configuration section to disable SSL certificate verification.
-
-pgBouncer Installation Notes
-----------------------------
-The user specified must be a stats user.
-
-PostgreSQL Installation Notes
------------------------------
-By default, the specified user must be superuser to get PostgreSQL
-directory listings. To skip those checks that require superuser
-permissions, use the ``superuser: False`` setting in the configuration
-file.
-
-Several of the checks take O(N) time where N is the number of relations
-in the database. If you need to use this on a database with a very large
-number of relations, you can skip these, using ``relation_stats: False``.
-
-E.g.:
-
-::
-
-    postgresql:
-      host: localhost
-      port: 5432
-      user: newrelic
-      dbname: postgres
-      password: newrelic
-      superuser: False
-      relation_stats: False
-
-RabbitMQ Installation Notes
----------------------------
-The user specified must have access to all virtual hosts you wish to monitor and should have either the Administrator tag or the Monitoring tag.
-
-If you are monitoring RabbitMQ via a HTTPS connection you can use the ``verify_ssl_cert`` configuration value in the httpd configuration section to disable SSL certificate verification.
-
-Redis Installation Notes
-------------------------
-For Redis daemons that are password protected, add the password configuration value, otherwise omit it. The Redis configuration section allows for multiple redis servers. The syntax to poll multiple servers is in the example below.
-
-The Redis plugin can communicate either over UNIX domain sockets using the path configuration variable or TCP/IP using the host and port variables. Do not include both.
-
-Riak Installation Notes
------------------------
-If you are monitoring Riak via a HTTPS connection you can use the ``verify_ssl_cert`` configuration value in the httpd configuration section to disable SSL certificate verification.
-
-UWSGI Installation Notes
-------------------------
-The UWSGI plugin can communicate either over UNIX domain sockets using the path configuration variable or TCP/IP using the host and port variables. Do not include both.
-
-Make sure you have `enabled stats server 
-<http://uwsgi-docs.readthedocs.org/en/latest/StatsServer.html>`_ in your uwsgi config.
 
 Configuration Example
 ---------------------
@@ -434,13 +282,6 @@ Configuration Example
 
 Troubleshooting
 ---------------
-- If the installation does not install the ``newrelic-plugin-agent`` application in ``/usr/bin`` then it is likely that ``setuptools`` or ``distribute`` is not up to date. The following commands can be run to install ``distribute`` and ``pip`` for installing the application:
-
-::
-
-    $ curl http://python-distribute.org/distribute_setup.py | python
-    $ curl https://raw.github.com/pypa/pip/master/contrib/get-pip.py | python
-
 - If the application installs but doesn't seem to be submitting status, check the logfile which at ``/tmp/newrelic-plugin-agent.log`` if the default example logging configuration is used.
 - If the agent starts but dies shortly after ensure that ``/var/log/newrelic`` and ``/var/run/newrelic`` are writable by the same user specified in the daemon section of the configuration file.
 - If the agent has died and won't restart, remove any files found in ``/var/run/newrelic/``

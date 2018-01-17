@@ -9,7 +9,7 @@ import requests
 import socket
 import tempfile
 import time
-import urlparse
+import urllib.parse as urlparse
 
 LOGGER = logging.getLogger(__name__)
 
@@ -181,7 +181,7 @@ class Plugin(object):
         if not value:
             value = 0
             
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             value = 0
 
         sum_of_squares = int(squares or (value * value))
@@ -336,7 +336,7 @@ class HTTPStatsPlugin(Plugin):
 
         """
         data = self.http_get()
-        return data.content if data else ''
+        return data.text if data else ''
 
     def http_get(self, url=None):
         """Fetch the data from the stats URL or a specified one.

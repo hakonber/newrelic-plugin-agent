@@ -10,7 +10,7 @@ import os
 import requests
 import socket
 import sys
-import Queue as queue
+import queue
 import threading
 import time
 
@@ -105,7 +105,7 @@ class NewRelicPluginAgent(helper.Controller):
                                               'plugin': plugin,
                                               'poll_interval':
                                                   int(self._wake_interval)})
-            thread.run()
+            thread.start()
             self.threads.append(thread)
 
     def process(self):
