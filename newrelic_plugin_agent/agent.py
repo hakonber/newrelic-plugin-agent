@@ -3,6 +3,7 @@ Multiple Plugin Agent for the New Relic Platform
 
 """
 import helper
+import helper.controller
 import importlib
 import json
 import logging
@@ -20,7 +21,7 @@ from newrelic_plugin_agent import plugins
 LOGGER = logging.getLogger(__name__)
 
 
-class NewRelicPluginAgent(helper.Controller):
+class NewRelicPluginAgent(helper.controller.Controller):
     """The NewRelicPluginAgent class implements a agent that polls plugins
     every minute and reports the state to NewRelic.
 
